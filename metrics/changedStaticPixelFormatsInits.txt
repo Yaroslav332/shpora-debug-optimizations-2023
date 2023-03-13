@@ -1,0 +1,10 @@
+64-bit version
+Compression: 8660
+Decompression: 8500
+Peak commit size: 91,87 MB
+Peak working set: 110,64 MB
+
+|     Method |    Mean |    Error |   StdDev |         Gen0 |        Gen1 |       Gen2 | Allocated |
+|----------- |--------:|---------:|---------:|-------------:|------------:|-----------:|----------:|
+|   Compress | 6.178 s | 0.1641 s | 0.0090 s | 1051000.0000 |  17000.0000 |  6000.0000 |   2.12 GB |
+| Uncompress | 6.802 s | 0.6610 s | 0.0362 s |  983000.0000 | 242000.0000 | 14000.0000 |   2.05 GB |
