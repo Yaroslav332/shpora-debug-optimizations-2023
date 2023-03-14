@@ -9,8 +9,6 @@ public class Pixel
 
 	public Pixel(double firstComponent, double secondComponent, double thirdComponent, PixelFormat pixelFormat)
 	{
-		if (!new[] { PixelFormat.RGB, PixelFormat.YCbCr }.Contains(pixelFormat))
-			throw new FormatException("Unknown pixel format: " + pixelFormat);
 		format = pixelFormat;
 		if (pixelFormat == PixelFormat.RGB)
 		{
