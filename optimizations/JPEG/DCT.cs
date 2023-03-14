@@ -55,10 +55,11 @@ public class DCT
 		return a * b * c;
 	}
 
+	private static readonly double _basicAlpha = 1 / Math.Sqrt(2);
 	private static double Alpha(int u)
 	{
 		if (u == 0)
-			return 1 / Math.Sqrt(2);
+			return _basicAlpha;
 		return 1;
 	}
 
