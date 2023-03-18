@@ -6,6 +6,7 @@ namespace JPEG;
 public class DCT
 {
 	private static readonly double[,] BasisValues;
+
 	static DCT()
 	{
 		var count = JpegProcessor.DCTSize;
@@ -43,6 +44,7 @@ public class DCT
 
 		BasisValues = valuesCos;
 	}
+
 	public static double[,] DCT2D(double[,] input)
 	{
 		
@@ -53,12 +55,47 @@ public class DCT
 		var hValues = BasisValues;
 		
 		var beta = Beta(height, width);
-		for (int i1 = 0; i1 < width; i1++)
+		
+		double sum = 0;
+		for (int i3 = 0; i3 < width; i3++)
 		{
-			var alpha1 = Alpha(i1);
-			for (int i2 = 0; i2 < height; i2++)
+			for (int i4 = 0; i4 < height; i4++)
 			{
-				double sum = 0;
+				sum += hValues[i4, 0] * wValues[i3, 0] * input[i3, i4];
+			}
+		}
+
+		coeffs[0, 0] = sum * beta / 2;
+		
+		for (int i2 = 1; i2 < height; i2++)
+		{
+			sum = 0;
+			for (int i3 = 0; i3 < width; i3++)
+			{
+				for (int i4 = 0; i4 < height; i4++)
+				{
+					sum += hValues[i4, i2] * wValues[i3, 0] * input[i3, i4];
+				}
+			}
+
+			coeffs[0, i2] = sum * beta * _basicAlpha;
+		}
+
+		for (int i1 = 1; i1 < width; i1++)
+		{
+			sum = 0;
+			for (int i3 = 0; i3 < width; i3++)
+			{
+				for (int i4 = 0; i4 < height; i4++)
+				{
+					sum += hValues[i4, 0] * wValues[i3, i1] * input[i3, i4];
+				}
+			}
+
+			coeffs[i1, 0] = sum * beta * _basicAlpha;
+			for (int i2 = 1; i2 < height; i2++)
+			{
+				sum = 0;
 				for (int i3 = 0; i3 < width; i3++)
 				{
 					for (int i4 = 0; i4 < height; i4++)
@@ -66,10 +103,10 @@ public class DCT
 						sum += hValues[i4, i2] * wValues[i3, i1] * input[i3, i4];
 					}
 				}
-				coeffs[i1, i2] = sum * beta * alpha1 * Alpha(i2);
+
+				coeffs[i1, i2] = sum * beta;
 			}
 		}
-
 		return coeffs;
 	}
 
@@ -81,33 +118,32 @@ public class DCT
 		var hValues = BasisValues;
 		var beta = Beta(l0, l1);
 		
-		for (var x = 0; x < l1; x++)
+		for (var i1 = 0; i1 < l1; i1++)
 		{
-			for (var y = 0; y < l0; y++)
+			for (var i2 = 0; i2 < l0; i2++)
 			{
 				double sum = 0;
-				for (int i1 = 0; i1 < l1; i1++)
+				sum += coeffs[0, 0] * wValues[i1, 0] * hValues[i2, 0] / 2;
+				for (int i4 = 1; i4 < l0; i4++)
 				{
-					var alpha1 = Alpha(i1);
-					sum += coeffs[i1, 0] * wValues[x, i1] * hValues[y, 0] * alpha1 * _basicAlpha;
-					for (int i2 = 1; i2 < l0; i2++)
+					sum += coeffs[0, i4] * wValues[i1, 0] * hValues[i2, i4] * _basicAlpha;
+				}
+
+				for (int i3 = 1; i3 < l1; i3++)
+				{
+					sum += coeffs[i3, 0] * wValues[i1, i3] * hValues[i2, 0] * _basicAlpha;
+					for (int i4 = 1; i4 < l0; i4++)
 					{
-						sum += coeffs[i1, i2] * wValues[x, i1] * hValues[y, i2] * alpha1;
+						sum += coeffs[i3, i4] * wValues[i1, i3] * hValues[i2, i4];
 					}
 				}
-				
-				output[x, y] = sum * beta;
+
+				output[i1, i2] = sum * beta;
 			}
 		}
 	}
 	
 	private static readonly double _basicAlpha = 1 / Math.Sqrt(2);
-	private static double Alpha(int u)
-	{
-		if (u == 0)
-			return _basicAlpha;
-		return 1;
-	}
 
 	private static double Beta(int height, int width)
 	{
