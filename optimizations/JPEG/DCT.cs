@@ -1,69 +1,14 @@
 ﻿using System;
-using JPEG.Utilities;
+using JPEG.Processor;
 
 namespace JPEG;
 
 public class DCT
 {
-	public static double[,] DCT2D(double[,] input)
+	private static readonly double[,] BasisValues;
+	static DCT()
 	{
-		
-		var height = input.GetLength(0);
-		var width = input.GetLength(1);
-		var coeffs = new double[width, height];
-		var wValues = GetBasisValues(width);
-		var hValues = GetBasisValues(height);
-		
-		var beta = Beta(height, width);
-		for (int i1 = 0; i1 < width; i1++)
-		{
-			var alpha1 = Alpha(i1);
-			for (int i2 = 0; i2 < height; i2++)
-			{
-				double sum = 0;
-				for (int i3 = 0; i3 < width; i3++)
-				{
-					for (int i4 = 0; i4 < height; i4++)
-					{
-						sum += hValues[i4, i2] * wValues[i3, i1] * input[i3, i4];
-					}
-				}
-				coeffs[i1, i2] = sum * beta * alpha1 * Alpha(i2);
-			}
-		}
-
-		return coeffs;
-	}
-
-	public static void IDCT2D(double[,] coeffs, double[,] output)
-	{
-		var l0 = coeffs.GetLength(0);
-		var l1 = coeffs.GetLength(1);
-		var wValues = GetBasisValues(l1);
-		var hValues = GetBasisValues(l0);
-		var beta = Beta(l0, l1);
-		
-		for (var x = 0; x < l1; x++)
-		{
-			for (var y = 0; y < l0; y++)
-			{
-				double sum = 0;
-				for (int i1 = 0; i1 < l1; i1++)
-				{
-					var alpha1 = Alpha(i1);
-					for (int i2 = 0; i2 < l0; i2++)
-					{
-						sum += coeffs[i1, i2] * wValues[x, i1] * hValues[y, i2] * alpha1 * Alpha(i2);
-					}
-				}
-				
-				output[x, y] = sum * beta;
-			}
-		}
-	}
-	
-	private static double[,] GetBasisValues(int count)
-	{
+		var count = JpegProcessor.DCTSize;
 		double[] cos = new double[count];
 		double[] sin = new double[count];
 		double bSin = Math.Sin(Math.PI / count);
@@ -96,9 +41,66 @@ public class DCT
 			}
 		}
 
-		return valuesCos;
+		BasisValues = valuesCos;
+	}
+	public static double[,] DCT2D(double[,] input)
+	{
+		
+		var height = input.GetLength(0);
+		var width = input.GetLength(1);
+		var coeffs = new double[width, height];
+		var wValues = BasisValues;
+		var hValues = BasisValues;
+		
+		var beta = Beta(height, width);
+		for (int i1 = 0; i1 < width; i1++)
+		{
+			var alpha1 = Alpha(i1);
+			for (int i2 = 0; i2 < height; i2++)
+			{
+				double sum = 0;
+				for (int i3 = 0; i3 < width; i3++)
+				{
+					for (int i4 = 0; i4 < height; i4++)
+					{
+						sum += hValues[i4, i2] * wValues[i3, i1] * input[i3, i4];
+					}
+				}
+				coeffs[i1, i2] = sum * beta * alpha1 * Alpha(i2);
+			}
+		}
+
+		return coeffs;
 	}
 
+	public static void IDCT2D(double[,] coeffs, double[,] output)
+	{
+		var l0 = coeffs.GetLength(0);
+		var l1 = coeffs.GetLength(1);
+		var wValues = BasisValues;
+		var hValues = BasisValues;
+		var beta = Beta(l0, l1);
+		
+		for (var x = 0; x < l1; x++)
+		{
+			for (var y = 0; y < l0; y++)
+			{
+				double sum = 0;
+				for (int i1 = 0; i1 < l1; i1++)
+				{
+					var alpha1 = Alpha(i1);
+					sum += coeffs[i1, 0] * wValues[x, i1] * hValues[y, 0] * alpha1 * _basicAlpha;
+					for (int i2 = 1; i2 < l0; i2++)
+					{
+						sum += coeffs[i1, i2] * wValues[x, i1] * hValues[y, i2] * alpha1;
+					}
+				}
+				
+				output[x, y] = sum * beta;
+			}
+		}
+	}
+	
 	private static readonly double _basicAlpha = 1 / Math.Sqrt(2);
 	private static double Alpha(int u)
 	{
