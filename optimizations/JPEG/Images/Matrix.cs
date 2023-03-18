@@ -64,10 +64,9 @@ class Matrix
                 {
                     var pixel = matrix.Pixels[j, i];
                     var t = i * 4;
-                    row[t] = (byte) pixel.B;
-                    row[t+1] = (byte) pixel.G;
-                    row[t+2] = (byte) pixel.R;
-                    row[t + 3] = 255;
+                    row[t] = ToByte(pixel.B);
+                    row[t+1] = ToByte(pixel.G);
+                    row[t+2] = ToByte(pixel.R);
                 }
                 row += stride;
             }
@@ -77,13 +76,13 @@ class Matrix
         return bmp;
     }
 
-    public static int ToByte(double d)
+    static byte ToByte(double d)
     {
         var val = (int)d;
         if (val > byte.MaxValue)
             return byte.MaxValue;
         if (val < byte.MinValue)
             return byte.MinValue;
-        return val;
+        return (byte)val;
     }
 }
