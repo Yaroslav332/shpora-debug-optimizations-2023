@@ -30,21 +30,66 @@ public class DCT
 
 	public static void IDCT2D(double[,] coeffs, double[,] output)
 	{
-		for (var x = 0; x < coeffs.GetLength(1); x++)
+		var l0 = coeffs.GetLength(0);
+		var l1 = coeffs.GetLength(1);
+		var wValues = GetBasisValues(l1);
+		var hValues = GetBasisValues(l0);
+		var beta = Beta(l0, l1);
+		
+		for (var x = 0; x < l1; x++)
 		{
-			for (var y = 0; y < coeffs.GetLength(0); y++)
+			for (var y = 0; y < l0; y++)
 			{
-				var sum = MathEx
-					.SumByTwoVariables(
-						0, coeffs.GetLength(1),
-						0, coeffs.GetLength(0),
-						(u, v) =>
-							BasisFunction(coeffs[u, v], u, v, x, y, coeffs.GetLength(0), coeffs.GetLength(1)) *
-							Alpha(u) * Alpha(v));
-
-				output[x, y] = sum * Beta(coeffs.GetLength(0), coeffs.GetLength(1));
+				double sum = 0;
+				for (int i1 = 0; i1 < l1; i1++)
+				{
+					var alpha1 = Alpha(i1);
+					for (int i2 = 0; i2 < l0; i2++)
+					{
+						sum += coeffs[i1, i2] * wValues[x, i1] * hValues[y, i2] * alpha1 * Alpha(i2);
+					}
+				}
+				
+				output[x, y] = sum * beta;
 			}
 		}
+	}
+	
+	private static double[,] GetBasisValues(int count)
+	{
+		double[] cos = new double[count];
+		double[] sin = new double[count];
+		double bSin = Math.Sin(Math.PI / count);
+		double bCos = Math.Cos(Math.PI / count);
+		cos[0] = Math.Cos(Math.PI / (2 * count));
+		sin[0] = Math.Sin(Math.PI / (2 * count));
+		for (int i = 1; i < count; i++)
+		{
+			(cos[i], sin[i]) =
+			(
+				cos[i - 1] * bCos - sin[i - 1] * bSin,
+				cos[i - 1] * bSin + sin[i - 1] * bCos
+			);
+		}
+
+		double[,] valuesCos = new double[count, count];
+		double[,] valuesSin = new double[count, count];
+		for (int i = 0; i < count; i++)
+		{
+			valuesCos[i, 0] = 1;
+			valuesSin[i, 0] = 0;
+		}
+		for (int i = 0; i < count; i++)
+		{
+			for (int j = 1; j < count; j++)
+			{
+				(valuesCos[i, j], valuesSin[i, j]) =
+					(valuesCos[i, j - 1] * cos[i] - valuesSin[i, j - 1] * sin[i],
+						valuesCos[i, j - 1] * sin[i] + valuesSin[i, j - 1] * cos[i]);
+			}
+		}
+
+		return valuesCos;
 	}
 
 	public static double BasisFunction(double a, double u, double v, double x, double y, int height, int width)
