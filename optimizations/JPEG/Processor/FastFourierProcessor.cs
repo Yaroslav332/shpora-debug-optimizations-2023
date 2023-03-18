@@ -14,7 +14,7 @@ namespace JPEG.Processor;
 public class FastFourierProcessor : IJpegProcessor
 {
     public static readonly FastFourierProcessor Init = new();
-    public static readonly float Y_Threshhold = 0.8f;
+    public static readonly float Y_Threshhold = 0.85f;
     public static readonly float C_Threshhold = 0.99f;
     public void Compress(string imagePath, string compressedImagePath)
     {
@@ -22,9 +22,21 @@ public class FastFourierProcessor : IJpegProcessor
         using var bmp = (Bitmap)Image.FromStream(fileStream, false, false);
         var height = bmp.Height;
         var width = bmp.Width;
-        Complex[,] y = new Complex[width, height];
-        Complex[,] cb = new Complex[width, height];
-        Complex[,] cr = new Complex[width, height];
+        var h1 = height;
+        var w1 = width;
+        if ((height & (height - 1)) != 0)
+        {
+            var l = (int)Math.Log2(height) + 1;
+            h1 = (int) Math.Pow(2, l);
+        }
+        if ((width & (width - 1)) != 0)
+        {
+            var l = (int)Math.Log2(width) + 1;
+            w1 = (int) Math.Pow(2, l);
+        }
+        Complex[,] y = new Complex[w1, h1];
+        Complex[,] cb = new Complex[w1, h1];
+        Complex[,] cr = new Complex[w1, h1];
         for (int i = 0; i < width; i++)
         {
             
@@ -74,7 +86,7 @@ public class FastFourierProcessor : IJpegProcessor
             }
         }
 
-        bmp.Save(compressedImagePath+".fourierTest.bmp", ImageFormat.Bmp);
+        bmp.Save(uncompressedImagePath, ImageFormat.Bmp);
     }
     
     private static void Threshold(Complex[,] arr, double coefficient){
