@@ -7,23 +7,30 @@ public class DCT
 {
 	public static double[,] DCT2D(double[,] input)
 	{
+		
 		var height = input.GetLength(0);
 		var width = input.GetLength(1);
 		var coeffs = new double[width, height];
-
-		MathEx.LoopByTwoVariables(
-			0, width,
-			0, height,
-			(u, v) =>
+		var wValues = GetBasisValues(width);
+		var hValues = GetBasisValues(height);
+		
+		var beta = Beta(height, width);
+		for (int i1 = 0; i1 < width; i1++)
+		{
+			var alpha1 = Alpha(i1);
+			for (int i2 = 0; i2 < height; i2++)
 			{
-				var sum = MathEx
-					.SumByTwoVariables(
-						0, width,
-						0, height,
-						(x, y) => BasisFunction(input[x, y], u, v, x, y, height, width));
-
-				coeffs[u, v] = sum * Beta(height, width) * Alpha(u) * Alpha(v);
-			});
+				double sum = 0;
+				for (int i3 = 0; i3 < width; i3++)
+				{
+					for (int i4 = 0; i4 < height; i4++)
+					{
+						sum += hValues[i4, i2] * wValues[i3, i1] * input[i3, i4];
+					}
+				}
+				coeffs[i1, i2] = sum * beta * alpha1 * Alpha(i2);
+			}
+		}
 
 		return coeffs;
 	}
@@ -90,14 +97,6 @@ public class DCT
 		}
 
 		return valuesCos;
-	}
-
-	public static double BasisFunction(double a, double u, double v, double x, double y, int height, int width)
-	{
-		var b = Math.Cos(((2d * x + 1d) * u * Math.PI) / (2 * width));
-		var c = Math.Cos(((2d * y + 1d) * v * Math.PI) / (2 * height));
-
-		return a * b * c;
 	}
 
 	private static readonly double _basicAlpha = 1 / Math.Sqrt(2);
