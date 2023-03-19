@@ -109,7 +109,6 @@ public class DCT
 		}
 		return coeffs;
 	}
-
 	public static void IDCT2D(double[,] coeffs, double[,] output)
 	{
 		var l0 = coeffs.GetLength(0);
@@ -117,28 +116,46 @@ public class DCT
 		var wValues = BasisValues;
 		var hValues = BasisValues;
 		var beta = Beta(l0, l1);
-		
+
+		double[] priorSum1Values = new double[l1];
+		for (int i = 0; i < l1; i++)
+			priorSum1Values[i] = coeffs[0, 0] * wValues[i, 0] / 2;
+		double[] priorSum2Values = new double[l0];
+		for (int i = 0; i < l0; i++)
+		{
+			priorSum2Values[i] = 0;
+			for (int j = 1; j < l0; j++)
+			{
+				priorSum2Values[i] += coeffs[0, j] * hValues[i, j];
+			}
+		}
+
+		double[,] priorSum3Values = new double[l0, l1];
+		for (int i = 0; i < l0; i++)
+		{
+			for (int j = 0; j < l1; j++)
+			{
+				priorSum3Values[i, j] = 0;
+				for (int k = 1; k < l0; k++)
+				{
+					priorSum3Values[i,j] += coeffs[j, k] * hValues[i, k];
+				}
+			}
+		}
 		for (var i1 = 0; i1 < l1; i1++)
 		{
 			for (var i2 = 0; i2 < l0; i2++)
 			{
-				double sum = 0;
-				sum += coeffs[0, 0] * wValues[i1, 0] * hValues[i2, 0] / 2;
-				for (int i4 = 1; i4 < l0; i4++)
-				{
-					sum += coeffs[0, i4] * wValues[i1, 0] * hValues[i2, i4] * _basicAlpha;
-				}
-
+				double sum1 = priorSum1Values[i1] * hValues[i2, 0];
+				double sum2 = priorSum2Values[i2] * wValues[i1, 0];
 				for (int i3 = 1; i3 < l1; i3++)
 				{
-					sum += coeffs[i3, 0] * wValues[i1, i3] * hValues[i2, 0] * _basicAlpha;
-					for (int i4 = 1; i4 < l0; i4++)
-					{
-						sum += coeffs[i3, i4] * wValues[i1, i3] * hValues[i2, i4];
-					}
+					double sum3 = priorSum3Values[i2, i3];
+					sum2 += coeffs[i3, 0] * wValues[i1, i3] * hValues[i2, 0];
+					sum1 += sum3 * wValues[i1, i3];
 				}
 
-				output[i1, i2] = sum * beta;
+				output[i1, i2] = (sum1 + sum2 * _basicAlpha) * beta;
 			}
 		}
 	}
