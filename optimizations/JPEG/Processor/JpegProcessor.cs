@@ -205,15 +205,17 @@ public class JpegProcessor : IJpegProcessor
 
 	private static double[,] DeQuantize(byte[,] quantizedBytes, int quality)
 	{
-		var result = new double[quantizedBytes.GetLength(0), quantizedBytes.GetLength(1)];
+		int l0 = quantizedBytes.GetLength(0);
+		int l1 = quantizedBytes.GetLength(1);
+		var result = new double[l0, l1];
 		var quantizationMatrix = GetQuantizationMatrix(quality);
 
-		for (int y = 0; y < quantizedBytes.GetLength(0); y++)
+		for (int y = 0; y < l0; y++)
 		{
-			for (int x = 0; x < quantizedBytes.GetLength(1); x++)
+			for (int x = 0; x < l1; x++)
 			{
 				result[y, x] =
-					((sbyte)quantizedBytes[y, x]) *
+					((sbyte) quantizedBytes[y, x]) *
 					quantizationMatrix[y, x]; //NOTE cast to sbyte not to loose negative numbers
 			}
 		}
