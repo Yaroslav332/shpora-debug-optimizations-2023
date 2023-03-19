@@ -55,56 +55,49 @@ public class DCT
 		var hValues = BasisValues;
 		
 		var beta = Beta(height, width);
+		double[,] priorSum1 = new double[height, width];
+		double[,] priorSum2 = new double[width, height];
 		
-		double sum = 0;
-		for (int i3 = 0; i3 < width; i3++)
+		for (int i = 0; i < height; i++)
 		{
-			for (int i4 = 0; i4 < height; i4++)
+			for (int j = 0; j < width; j++)
 			{
-				sum += hValues[i4, 0] * wValues[i3, 0] * input[i3, i4];
+				priorSum1[i, j] = 0;
+				for (int k = 0; k < width; k++)
+				{
+					priorSum1[i, j] += hValues[k, i] * input[j, k];
+				}
 			}
 		}
 
-		coeffs[0, 0] = sum * beta / 2;
+		for (int i = 0; i < height; i++)
+		{
+			for (int j = 0; j < width; j++)
+			{
+				priorSum2[i, j] = 0;
+				for (int k = 0; k < width; k++)
+				{
+					priorSum2[i, j] += priorSum1[j, k] * wValues[k, i];
+				}
+			}
+		}
+		
+		coeffs[0, 0] = priorSum2[0, 0] * beta / 2;
+
+		var betaBaseAlpha = beta * _basicAlpha;
 		
 		for (int i2 = 1; i2 < height; i2++)
 		{
-			sum = 0;
-			for (int i3 = 0; i3 < width; i3++)
-			{
-				for (int i4 = 0; i4 < height; i4++)
-				{
-					sum += hValues[i4, i2] * wValues[i3, 0] * input[i3, i4];
-				}
-			}
-
-			coeffs[0, i2] = sum * beta * _basicAlpha;
+			coeffs[0, i2] = priorSum2[0, i2] * betaBaseAlpha;
 		}
 
 		for (int i1 = 1; i1 < width; i1++)
 		{
-			sum = 0;
-			for (int i3 = 0; i3 < width; i3++)
-			{
-				for (int i4 = 0; i4 < height; i4++)
-				{
-					sum += hValues[i4, 0] * wValues[i3, i1] * input[i3, i4];
-				}
-			}
-
-			coeffs[i1, 0] = sum * beta * _basicAlpha;
+			coeffs[i1, 0] = priorSum2[i1,0] * betaBaseAlpha;
+			
 			for (int i2 = 1; i2 < height; i2++)
 			{
-				sum = 0;
-				for (int i3 = 0; i3 < width; i3++)
-				{
-					for (int i4 = 0; i4 < height; i4++)
-					{
-						sum += hValues[i4, i2] * wValues[i3, i1] * input[i3, i4];
-					}
-				}
-
-				coeffs[i1, i2] = sum * beta;
+				coeffs[i1, i2] = priorSum2[i1, i2] * beta;
 			}
 		}
 		return coeffs;
