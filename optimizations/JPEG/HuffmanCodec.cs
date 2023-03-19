@@ -104,12 +104,14 @@ class HuffmanCodec
 
 		byte decodedByte;
 		var sample = new BitsWithLength { Bits = 0, BitsCount = 0 };
-		for (var byteNum = 0; byteNum < encodedData.Length; byteNum++)
+		var length = encodedData.Length;
+		var bn8 = 0;
+		for (var byteNum = 0; byteNum < length; byteNum++)
 		{
 			var b = encodedData[byteNum];
-			for (var bitNum = 0; bitNum < 8 && byteNum * 8 + bitNum < bitsCount; bitNum++)
+			for (var bitNum = 0; bitNum < 8 && bn8 + bitNum < bitsCount; bitNum++)
 			{
-				sample.Bits = (sample.Bits << 1) + ((b & (1 << (8 - bitNum - 1))) != 0 ? 1 : 0);
+				sample.Bits = (sample.Bits << 1) + ((b >> (7 - bitNum)) & 1);
 				sample.BitsCount++;
 
 				if (decodeTable.TryGetValue(sample, out decodedByte))
@@ -120,6 +122,7 @@ class HuffmanCodec
 					sample.Bits = 0;
 				}
 			}
+			bn8 += 8;
 		}
 
 		return result.ToArray();
