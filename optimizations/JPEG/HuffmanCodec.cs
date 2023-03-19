@@ -6,7 +6,7 @@ using JPEG.Utilities;
 
 namespace JPEG;
 
-class HuffmanNode
+public class HuffmanNode
 {
 	public byte? LeafLabel { get; set; }
 	public int Frequency { get; set; }
@@ -84,7 +84,7 @@ class HuffmanCodec
 	{
 		var frequences = CalcFrequences(data);
 
-		var root = BuildHuffmanTree(frequences);
+		HuffmanNode root = BuildHuffmanTree(frequences);
 
 		var encodeTable = new BitsWithLength[byte.MaxValue + 1];
 		FillEncodeTable(root, encodeTable);
@@ -161,20 +161,17 @@ class HuffmanCodec
 
 	private static HuffmanNode BuildHuffmanTree(int[] frequences)
 	{
-		var nodes = GetNodes(frequences);
+		var nodes = new SortedHuffmanNodeStorage(frequences);
 
-		while (nodes.Count() > 1)
+		while (nodes.Count > 1)
 		{
-			var firstMin = nodes.MinOrDefault(node => node.Frequency);
-			nodes = nodes.Without(firstMin);
-			var secondMin = nodes.MinOrDefault(node => node.Frequency);
-			nodes = nodes.Without(secondMin);
-			nodes = nodes.Concat(new HuffmanNode
-					{ Frequency = firstMin.Frequency + secondMin.Frequency, Left = secondMin, Right = firstMin }
-				.ToEnumerable());
+			var firstMin = nodes.GetHead();
+			var secondMin = nodes.GetHead();
+			nodes.Add(new HuffmanNode
+				{Frequency = firstMin.Frequency + secondMin.Frequency, Left = secondMin, Right = firstMin});
 		}
 
-		return nodes.First();
+		return nodes.GetHead();
 	}
 
 	private static IEnumerable<HuffmanNode> GetNodes(int[] frequences)
