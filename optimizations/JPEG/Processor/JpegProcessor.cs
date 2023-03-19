@@ -119,28 +119,6 @@ public class JpegProcessor : IJpegProcessor
 					SetPixels(result, _y, cb, cr, PixelFormat.YCbCr, y, x);
 				}
 			}
-			/*
-			for (var y = 0; y < image.Height; y += DCTSize)
-			{
-				for (var x = 0; x < image.Width; x += DCTSize)
-				{
-					var _y = new double[DCTSize, DCTSize];
-					var cb = new double[DCTSize, DCTSize];
-					var cr = new double[DCTSize, DCTSize];
-					foreach (var channel in new[] { _y, cb, cr })
-					{
-						var quantizedBytes = new byte[DCTSize * DCTSize];
-						allQuantizedBytes.ReadAsync(quantizedBytes, 0, quantizedBytes.Length).Wait();
-						var quantizedFreqs = ZigZagUnScan(quantizedBytes);
-						var channelFreqs = DeQuantize(quantizedFreqs, image.Quality);
-						DCT.IDCT2D(channelFreqs, channel);
-						ShiftMatrixValues(channel, 128);
-					}
-
-					SetPixels(result, _y, cb, cr, PixelFormat.YCbCr, y, x);
-				}
-			}
-			*/
 		}
 
 		return result;
@@ -241,14 +219,16 @@ public class JpegProcessor : IJpegProcessor
 
 	private static byte[,] Quantize(double[,] channelFreqs, int quality)
 	{
-		var result = new byte[channelFreqs.GetLength(0), channelFreqs.GetLength(1)];
+		var l0 = channelFreqs.GetLength(0);
+		var l1 = channelFreqs.GetLength(1);
+		var result = new byte[l0, l1];
 
 		var quantizationMatrix = GetQuantizationMatrix(quality);
-		for (int y = 0; y < channelFreqs.GetLength(0); y++)
+		for (int y = 0; y < l0; y++)
 		{
-			for (int x = 0; x < channelFreqs.GetLength(1); x++)
+			for (int x = 0; x < l1; x++)
 			{
-				result[y, x] = (byte)(channelFreqs[y, x] / quantizationMatrix[y, x]);
+				result[y, x] = (byte) (channelFreqs[y, x] / quantizationMatrix[y, x]);
 			}
 		}
 
@@ -294,9 +274,11 @@ public class JpegProcessor : IJpegProcessor
 			{ 72, 92, 95, 98, 112, 100, 103, 99 }
 		};
 
-		for (int y = 0; y < result.GetLength(0); y++)
+		var l0 = result.GetLength(0);
+		var l1 = result.GetLength(1);
+		for (int y = 0; y < l0; y++)
 		{
-			for (int x = 0; x < result.GetLength(1); x++)
+			for (int x = 0; x < l1; x++)
 			{
 				result[y, x] = (multiplier * result[y, x] + 50) / 100;
 			}
