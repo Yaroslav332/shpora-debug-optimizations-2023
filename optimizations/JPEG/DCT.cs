@@ -141,14 +141,14 @@ public class DCT
 			{
 				double sum1 = priorSum1Values[i1] * hValues[i2, 0];
 				double sum2 = priorSum2Values[i2] * wValues[i1, 0];
+				double sum22 = 0;
 				for (int i3 = 1; i3 < l1; i3++)
 				{
-					double sum3 = priorSum3Values[i2, i3];
-					sum2 += coeffs[i3, 0] * wValues[i1, i3] * hValues[i2, 0];
-					sum1 += sum3 * wValues[i1, i3];
+					sum22 += coeffs[i3, 0] * wValues[i1, i3];
+					sum1 += priorSum3Values[i2, i3] * wValues[i1, i3];
 				}
-
-				output[i1, i2] = (sum1 + sum2 * _basicAlpha) * beta;
+				sum22 *= hValues[i2, 0];
+				output[i1, i2] = (sum1 + (sum2 + sum22) * _basicAlpha) * beta;
 			}
 		}
 	}
