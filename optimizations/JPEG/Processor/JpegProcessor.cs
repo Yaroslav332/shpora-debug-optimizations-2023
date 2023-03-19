@@ -148,7 +148,7 @@ public class JpegProcessor : IJpegProcessor
 		};
 	}
 
-	private static byte[,] ZigZagUnScan(IReadOnlyList<byte> quantizedBytes)
+	private static byte[,] ZigZagUnScan(byte[] quantizedBytes)
 	{
 		return new[,]
 		{
