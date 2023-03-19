@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -98,7 +99,7 @@ class HuffmanCodec
 		return bitsBuffer.ToArray(out bitsCount);
 	}
 
-	public static byte[] Decode(byte[] encodedData, Dictionary<BitsWithLength, byte> decodeTable, long bitsCount)
+	public static byte[] Decode(Span<byte> encodedData, Dictionary<BitsWithLength, byte> decodeTable, long bitsCount)
 	{
 		var result = new List<byte>();
 
